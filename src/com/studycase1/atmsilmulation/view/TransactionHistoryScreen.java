@@ -9,6 +9,7 @@ public class TransactionHistoryScreen {
 		
 		TransactionHistory transactionHistory = new TransactionHistoryImpl();
 		
+		System.out.println();
 		System.out.println("Transaction History Screen");
 		System.out.println("---------------------------");
 		
