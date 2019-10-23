@@ -13,19 +13,19 @@ public class WithdrawServicesImpl implements WithdrawServices {
 	@Override
 	public void caculateWithdrawAmount(List<Account> users, String accountNumber, String pin,
 			SummaryScreen summaryScreen, TransactionScreen transactionScreen, int amount) {
-		for (int i = 0; i < users.size(); i++) {
-			if (WelcomeScreen.accNumberStatic.equals(users.get(i).getAccountNumber())
-					&& WelcomeScreen.pinStatic.equals(users.get(i).getPIN()) && Integer.parseInt(users.get(i).getBalance()) >= amount) {
+		for (Account user : users) {
+			if (WelcomeScreen.accNumberStatic.equals(user.getAccountNumber())
+					&& WelcomeScreen.pinStatic.equals(user.getPIN()) && Integer.parseInt(user.getBalance()) >= amount) {
 				
 				TransactionHistory transactionHistory = new TransactionHistoryImpl();
 				
-				int temp = Integer.parseInt(users.get(i).getBalance());
-				users.get(i).setBalance(String.valueOf(temp - amount));
-				WelcomeScreen.balance = Integer.parseInt(users.get(i).getBalance());
+				int temp = Integer.parseInt(user.getBalance());
+				user.setBalance(String.valueOf(temp - amount));
+				WelcomeScreen.balance = Integer.parseInt(user.getBalance());
 				WithdrawScreen.withdrawAmount = "$" + amount;
 				transactionHistory.addWithdrawHistory();
 				summaryScreen.show();
-			} else if (Integer.parseInt(users.get(i).getBalance()) < amount) {
+			} else if (Integer.parseInt(user.getBalance()) < amount) {
 				System.out.println("Insufficient balance $" + amount);
 				transactionScreen.show();
 			}
@@ -51,12 +51,12 @@ public class WithdrawServicesImpl implements WithdrawServices {
 			withdrawScreen.show();
 		} else {
 			// calculate and set balance
-			for (int i = 0; i < users.size(); i++) {
-				if (WelcomeScreen.accNumberStatic.equals(users.get(i).getAccountNumber())
-						&& WelcomeScreen.pinStatic.equals(users.get(i).getPIN())) {
+			for (Account user : users) {
+				if (WelcomeScreen.accNumberStatic.equals(user.getAccountNumber())
+						&& WelcomeScreen.pinStatic.equals(user.getPIN())) {
 					
 					TransactionHistory transactionHistory = new TransactionHistoryImpl();
-					users.get(i).setBalance(String.valueOf(WelcomeScreen.balance - Integer.parseInt(amount)));
+					user.setBalance(String.valueOf(WelcomeScreen.balance - Integer.parseInt(amount)));
 					WelcomeScreen.balance -= Integer.parseInt(amount);
 					WithdrawScreen.withdrawAmount = "$" + amount;
 					transactionHistory.addWithdrawHistory();

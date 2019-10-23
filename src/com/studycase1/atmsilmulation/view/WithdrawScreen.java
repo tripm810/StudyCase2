@@ -42,13 +42,7 @@ public class WithdrawScreen {
 		case "4":
 			otherWithdrawScreen.show();
 			break;
-		case "5":
-			transactionScreen.show();
-			break;
-		case "":
-			transactionScreen.show();
-			break;
-		default:
+			default:
 			transactionScreen.show();
 		}
 	}

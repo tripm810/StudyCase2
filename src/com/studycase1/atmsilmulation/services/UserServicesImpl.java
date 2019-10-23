@@ -11,10 +11,12 @@ public class UserServicesImpl implements UserService {
 	@Override
 	// Get balance for calculate and validate accNumber and PIN
 	public void validate(List<Account> users, String accountNumber, String pin) {
+		TransactionScreen transactionScreen = new TransactionScreen();
+		WelcomeScreen welcomeScreen = new WelcomeScreen();
 		int temp = 0;
-		for (int i = 0; i < users.size(); i++) {
-			if (accountNumber.equals(users.get(i).getAccountNumber()) && pin.equals(users.get(i).getPIN())) {
-				WelcomeScreen.balance = Integer.parseInt(users.get(i).getBalance());
+		for (Account user : users) {
+			if (accountNumber.equals(user.getAccountNumber()) && pin.equals(user.getPIN())) {
+				WelcomeScreen.balance = Integer.parseInt(user.getBalance());
 				temp = 0;
 				break;
 			} else {
@@ -23,9 +25,9 @@ public class UserServicesImpl implements UserService {
 		}
 		if (temp == 1) {
 			System.out.println("Invalid Account Number or PIN");
+			welcomeScreen.show();
 		}
 		if (temp == 0) {
-			TransactionScreen transactionScreen = new TransactionScreen();
 			transactionScreen.show();
 		}
 	}

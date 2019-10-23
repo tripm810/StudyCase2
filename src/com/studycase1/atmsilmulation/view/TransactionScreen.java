@@ -36,15 +36,11 @@ public class TransactionScreen {
 			break;
 		case "3":
 			System.out.println(opt);
-			
-			opt = null;
 			break;
-			
 		case "4":
 			System.out.println(opt);
 			historyScreen.show();
 			show();
-			opt = null;
 			break;
 		case "":
 			welcomeScreen.show();
