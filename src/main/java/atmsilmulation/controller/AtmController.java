@@ -3,12 +3,11 @@ package atmsilmulation.controller;
 
 import atmsilmulation.model.Account;
 import atmsilmulation.model.History;
-import atmsilmulation.repository.HistoryRepository;
 import atmsilmulation.services.FundTransferServices;
 import atmsilmulation.services.TransactionHistory;
 import atmsilmulation.services.UserServices;
 import atmsilmulation.services.WithdrawServices;
-import org.springframework.beans.factory.annotation.Autowired;
+import atmsilmulation.utils.Constant;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -26,21 +25,24 @@ import java.util.List;
 @Controller
 public class AtmController {
 
-    @Autowired
-    UserServices userServices;
+    private final UserServices userServices;
 
-    @Autowired
-    TransactionHistory transactionHistory;
+    private final TransactionHistory transactionHistory;
 
-    @Autowired
-    FundTransferServices fundTransferServices;
+    private final FundTransferServices fundTransferServices;
 
-    @Autowired
-    WithdrawServices withdrawServices;
+    private final WithdrawServices withdrawServices;
 
 
     private Account currentAccount;
     private String amount;
+
+    public AtmController(UserServices userServices, TransactionHistory transactionHistory, FundTransferServices fundTransferServices, WithdrawServices withdrawServices) {
+        this.userServices = userServices;
+        this.transactionHistory = transactionHistory;
+        this.fundTransferServices = fundTransferServices;
+        this.withdrawServices = withdrawServices;
+    }
 
 
     @RequestMapping("/")
@@ -57,7 +59,7 @@ public class AtmController {
                              @ModelAttribute("loginBean") Account loginBean) throws Exception {
         ModelAndView view = null;
 
-        currentAccount = userServices.validate(loginBean.getAccountNumber(),loginBean.getPin());
+        currentAccount = userServices.validate(loginBean.getAccountNumber(), loginBean.getPin());
         if (currentAccount == null) {
             request.setAttribute("msg", "Invalid account or PIN");
             view = new ModelAndView("Login");
@@ -118,11 +120,11 @@ public class AtmController {
     public String summary(Model model) {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
         LocalDateTime now = LocalDateTime.now();
-        Account account = userServices.validate(currentAccount.getAccountNumber(),currentAccount.getPin());
-        if (account != null){
+        Account account = userServices.validate(currentAccount.getAccountNumber(), currentAccount.getPin());
+        if (account != null) {
             model.addAttribute("accountNumber", account.getAccountNumber());
             model.addAttribute("date", dateTimeFormatter.format(now));
-            model.addAttribute("amount", amount );
+            model.addAttribute("amount", amount);
             model.addAttribute("balance", account.getBalance());
         }
         return "SummaryScreen";
@@ -134,29 +136,31 @@ public class AtmController {
     }
 
     @RequestMapping(value = "/fund-transfer", method = RequestMethod.POST)
-    public ModelAndView submitTransfer(
+    public String submitTransfer(
             HttpServletRequest request,
             @RequestParam("accountDestination") String accountDestination,
             @RequestParam("amount") String amount,
-            @RequestParam("ref") String ref
+            @RequestParam("ref") String ref, Model model
     ) {
-        ModelAndView view = null;
         String result =
-                fundTransferServices.submitFundTransaction(
-                        currentAccount.getAccountNumber(),
-                        currentAccount.getPin(),
-                        accountDestination,
-                        Integer.parseInt(amount),
-                        ref
-                );
-        if (result.equals("SUCCESS")) {
-            view = new ModelAndView("redirect:/account-screen");
+                null;
+        try {
+            result = fundTransferServices.submitFundTransaction(
+                    currentAccount.getAccountNumber(),
+                    currentAccount.getPin(),
+                    accountDestination,
+                    Integer.parseInt(amount),
+                    ref
+            );
+        } catch (Exception e) {
+            model.addAttribute("err", e.getMessage());
+        }
+        if (result.equals(Constant.SUCCESS)) {
+            return "redirect:/account-screen";
         } else {
             request.setAttribute("msg", result);
-            view = new ModelAndView("FundTransferScreen");
-
+            return "FundTransferScreen";
         }
-        return view;
     }
 
     @RequestMapping("/transaction-history")

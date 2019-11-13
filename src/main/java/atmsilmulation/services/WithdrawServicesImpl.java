@@ -4,6 +4,8 @@ import atmsilmulation.model.Account;
 import atmsilmulation.model.History;
 import atmsilmulation.repository.AccountRepository;
 import atmsilmulation.repository.HistoryRepository;
+import atmsilmulation.utils.Constant;
+import atmsilmulation.utils.TransactionType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +33,7 @@ public class WithdrawServicesImpl implements WithdrawServices {
 			history.setBalance(account.getBalance());
 			history.setAmount(String.valueOf(amount));
 			history.setDate(LocalDateTime.now().format(formatter));
-			history.setType("WITHDRAW");
+			history.setType(TransactionType.WITHDRAW);
 			historyRepository.save(history);
 			accountRepository.save(account);
 			return true;
@@ -43,13 +45,13 @@ public class WithdrawServicesImpl implements WithdrawServices {
 	public String validateWithdrawAmount(String balance, String amount) {
 		String regex = "[0-9]+";
 		if (!amount.matches(regex)) {
-			return "Only Number Allowed";
+			return Constant.ONLY_NUMBER_ALLOWED;
 		} else if (Integer.parseInt(amount) % 10 != 0) {
-			return "Invalid amount";
+			return Constant.INVALID_AMOUNT;
 		} else if (Integer.parseInt(amount) > 1000) {
-			return "Maximum amount to withdraw is $1000";
+			return Constant.MAXIMUM_WITHDRAW_AMOUNT;
 		} else if (Integer.parseInt(balance) - Integer.parseInt(amount) < 0) {
-			return "Insufficient balance $" + amount;
+			return Constant.INSUFFICIENT_BALANCE + amount;
 		}
 		return null;
 	}
