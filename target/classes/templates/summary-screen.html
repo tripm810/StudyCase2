@@ -1,0 +1,37 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>Summary Screen</title>
+</head>
+<body>
+<h1>Summary</h1>
+<table>
+	<tr>
+		<td>Account Number :</td>
+		<td th:utext="${withDraw.accountNumber}"></td>
+	</tr>
+	<tr>
+		<td>Date: </td>
+		<td th:utext="${withDraw.date}"></td>
+	</tr>
+	<tr>
+		<td>Withdraw :</td>
+		<td th:utext="'$' + ${withDraw.amount}"></td>
+	</tr>
+	<tr>
+		<td>Balance :</td>
+		<td th:utext="'$' + ${withDraw.balance}"></td>
+	</tr>
+	<tr>
+		<td><a href="/account-screen">Account Screen</a></td>
+	</tr>
+	<tr>
+		<td><a href="/login?logout">Exit</a></td>
+	</tr>
+	<tr>
+	</tr>
+</table>
+</body>
+</html>

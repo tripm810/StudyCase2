@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Transaction History</title>
+</head>
+<body>
+<h1>Latest 10 Transactions</h1>
+<table border="2" width="70%" cellpadding="2">
+    <tr>
+        <th>Account Number</th>
+        <th>Balance</th>
+        <th>Amount</th>
+        <th>Time</th>
+        <th>Type</th>
+        <th>Ref</th>
+        <th>Destination Account</th>
+    </tr>
+        <tr th:each="trans : ${transactionList}">
+            <td th:text="${trans.accNumber}"></td>
+            <td th:text="'$' + ${trans.balance}"></td>
+            <td th:text="'$' + ${trans.amount}"></td>
+            <td th:text="${trans.date}"></td>
+            <td th:text="${trans.type}"></td>
+            <td th:text="${trans.refNumber}"></td>
+            <td th:text="${trans.destinationAcc}"></td>
+        </tr>
+    </c:forEach>
+</table>
+<td><a href="/account-screen">Back</a></td>
+<td><a href="/login?logout">Exit</a></td>
+
+<br/>
+</body>
+</html>

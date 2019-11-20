@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Withdraw Screen</title>
+</head>
+<body>
+<h1>Withdraw</h1>
+<div th:if="${msg}" th:utext="${msg}"
+     style="color:red">
+    ...
+</div>
+<table>
+    <form action="withdraw" th:action="@{/account-screen/withdraw}" th:object="${withdrawDTO}" method="post" >
+        <div>
+        <input type="radio" th:field="*{amount}" name ="amount" id="amount" value="10">
+            <span>
+                 $10
+            </span>
+        </div>
+        <div>
+            <input type="radio" th:field="*{amount}" name ="amount" id="amount" value="50">
+            <span>
+                 $50
+            </span>
+        </div>
+        <div>
+            <input type="radio" th:field="*{amount}" name ="amount" id="amount" value="100">
+            <span>
+                 $100
+            </span>
+        </div>
+        <div>
+            <input type="radio" th:field="*{amount}" name ="amount" id="amount" value="other" />
+            </span>
+            <input type="number" id="inputAmount" class="form-control" th:field="*{inputValue}" placeholder="0" value="" />
+        </div>
+        <br>
+        <input type="submit" value="Withdraw">
+    </form>
+    <tr>
+        <td><a href="/login?logout">Exit</a></td>
+    </tr>
+    <tr>
+    </tr>
+</table>
+</body>
+</html>

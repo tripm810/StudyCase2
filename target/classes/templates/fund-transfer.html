@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fund Transfer</title>
+</head>
+<body>
+
+<h1>Fund Transfer </h1>
+<div th:if="${msg}" th:utext="${msg}"
+     style="color:red">
+    ...
+</div>
+<form  action="fundtransfer" th:action="@{/account-screen/fund-transfer}" th:object="${fundTransferDTO}" method="post" >
+    <table>
+        <tr>
+            <td>Destination Account :</td>
+            <td>
+                <input type="text"
+                       th:field="*{accountDestination}"
+                       name="accountDestination"
+                       id = "accountDestination"
+                       required
+                       onkeypress='return event.charCode >= 48 && event.charCode <= 57'
+                       maxlength="6"/>
+            </td>
+        </tr>
+        <tr>
+            <td>Transfer Amount :</td>
+            <td>
+                <input th:field="*{amount}"
+                       name="amount"
+                       id = "amount"
+                       required
+                       onkeypress='return event.charCode >= 48 && event.charCode <= 57'
+                       maxlength="6"/>
+            </td>
+        </tr>
+        <tr>
+            <td>Ref :</td>
+            <td>
+                <input th:field="*{ref}"
+                       name="ref"
+                       id = "ref"
+                       required
+                       onkeypress='return event.charCode >= 48 && event.charCode <= 57'
+                       maxlength="6"/>
+            </td>
+        </tr>
+        <tr>
+            <td><input type="submit" name="action" value="Confirm Trx"/></td>
+            <td><input type="button" onclick="window.location.replace('account-screen');" value="Cancel Trx"/></td>
+        </tr>
+    </table>
+</form>
+
+<br/>
+
+</body>
+</html>
