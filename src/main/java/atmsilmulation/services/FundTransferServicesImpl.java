@@ -23,18 +23,18 @@ public class FundTransferServicesImpl implements FundTransferServices {
     HistoryRepository historyRepository;
 
     @Override
-    public String submitFundTransaction(String accountNumber, String pin, String destination, int amount, String ref) throws Exception {
+    public String submitFundTransaction(String accountNumber, String pin, String destination, int amount, String ref) throws FundTransactionException {
         Account currentAccount = accountRepository.findAccountByAccountNumberAndPin(accountNumber, pin);
         Account destinationAccount = accountRepository.findAccountByAccountNumber(destination);
 
 		if (currentAccount == null || destinationAccount == null) {
-			throw new Exception(Constant.ACCOUNT_INVALID);
+			throw new FundTransactionException(Constant.ACCOUNT_INVALID);
 		}
 		if (Integer.parseInt(currentAccount.getBalance()) <= amount) {
-			throw new Exception(Constant.INSUFFICIENT_BALANCE + amount);
+			throw new FundTransactionException(Constant.INSUFFICIENT_BALANCE + amount);
 		}
 		if (amount > 1000) {
-			throw new Exception(Constant.MAXIMUM_TRANSFER_AMOUNT);
+			throw new FundTransactionException(Constant.MAXIMUM_TRANSFER_AMOUNT);
 		}
 
 		currentAccount.setBalance(Integer.toString(Integer.parseInt(currentAccount.getBalance()) - amount));

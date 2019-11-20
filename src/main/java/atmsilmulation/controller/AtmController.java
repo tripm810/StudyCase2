@@ -1,6 +1,10 @@
 package atmsilmulation.controller;
 
 
+import atmsilmulation.dto.FundTransferDTO;
+import atmsilmulation.dto.WithdrawDTO;
+import atmsilmulation.exception.FundTransactionException;
+import atmsilmulation.exception.WithdrawException;
 import atmsilmulation.model.Account;
 import atmsilmulation.model.History;
 import atmsilmulation.services.FundTransferServices;
@@ -10,14 +14,10 @@ import atmsilmulation.services.WithdrawServices;
 import atmsilmulation.utils.Constant;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import java.security.Principal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -34,9 +34,6 @@ public class AtmController {
     private final WithdrawServices withdrawServices;
 
 
-    private Account currentAccount;
-    private String amount;
-
     public AtmController(UserServices userServices, TransactionHistory transactionHistory, FundTransferServices fundTransferServices, WithdrawServices withdrawServices) {
         this.userServices = userServices;
         this.transactionHistory = transactionHistory;
@@ -44,130 +41,119 @@ public class AtmController {
         this.withdrawServices = withdrawServices;
     }
 
-
-    @RequestMapping("/")
-    public ModelAndView showFormLogin(HttpServletRequest request, HttpServletResponse response) {
-        ModelAndView view = new ModelAndView("Login");
-        Account loginBean = new Account();
-        view.addObject("loginBean", loginBean);
-        return view;
-
-    }
-
-    @RequestMapping(value = "/login", method = RequestMethod.POST)
-    public ModelAndView save(HttpServletRequest request, HttpServletResponse response,
-                             @ModelAttribute("loginBean") Account loginBean) throws Exception {
-        ModelAndView view = null;
-
-        currentAccount = userServices.validate(loginBean.getAccountNumber(), loginBean.getPin());
-        if (currentAccount == null) {
-            request.setAttribute("msg", "Invalid account or PIN");
-            view = new ModelAndView("Login");
-        } else {
-            view = new ModelAndView("redirect:/account-screen");
-        }
-        return view;
-    }
-
-    @RequestMapping("/account-screen")
-    public String accountScreen(Model m) {
-        currentAccount = userServices.validate(currentAccount.getAccountNumber(), currentAccount.getPin());
-        m.addAttribute("account", currentAccount);
-        return "AccountScreen";
-    }
-
-    @RequestMapping("/withdraw")
-    public String withdraw() {
-        return "WithdrawScreen";
-    }
-
-    @RequestMapping(value = "/withdraw", method = RequestMethod.POST)
-    public ModelAndView submitWithdraw(HttpServletRequest request,
-                                       @RequestParam(value = "withdraw-value", required = false) String value,
-                                       @RequestParam("other-value") String otherValue) {
-        ModelAndView view = null;
-        if (value == null) {
-            request.setAttribute("msg", "Error");
-            return new ModelAndView("redirect:/withdraw");
-        }
-        if ("other".equals(value)) {
-            amount = otherValue;
-        } else {
-            amount = value;
-        }
-        String validate = withdrawServices.validateWithdrawAmount(currentAccount.getBalance(), amount);
-
-        if (validate == null) {
-            if (withdrawServices.calculateWithdrawAmount(currentAccount, Integer.parseInt(amount))) {
-                view = new ModelAndView("redirect:/summary-screen");
-            } else {
-                request.setAttribute("msg", "Error");
-            }
-        } else {
-            request.setAttribute("msg", validate);
-            view = new ModelAndView("WithdrawScreen");
-        }
-        return view;
-    }
-
-
-    @RequestMapping("/welcome")
+    @GetMapping("/welcome")
     public String welcome() {
         return "WelcomeScreen";
     }
 
-    @RequestMapping("/summary-screen")
-    public String summary(Model model) {
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-        LocalDateTime now = LocalDateTime.now();
-        Account account = userServices.validate(currentAccount.getAccountNumber(), currentAccount.getPin());
-        if (account != null) {
-            model.addAttribute("accountNumber", account.getAccountNumber());
-            model.addAttribute("date", dateTimeFormatter.format(now));
-            model.addAttribute("amount", amount);
-            model.addAttribute("balance", account.getBalance());
+    @GetMapping(value = {"/login", "/"})
+    public String getLogin() {
+        return "login";
+    }
+
+    @GetMapping("/account-screen")
+    public String accountScreen(HttpServletRequest request, Model model) {
+        Principal principal = request.getUserPrincipal();
+        Account account = userServices.findAccountByAccountNumber(principal.getName());
+        model.addAttribute("account", account);
+        return "account-screen";
+    }
+
+    @GetMapping("/account-screen/withdraw")
+    public String withdraw(Model model) {
+        WithdrawDTO withdrawDTO = new WithdrawDTO();
+        model.addAttribute("withdrawDTO", withdrawDTO);
+        return "withdraw";
+    }
+
+    @PostMapping("/account-screen/withdraw")
+    public String submitWithdraw(Model model, HttpServletRequest request, @ModelAttribute("withdrawDTO") WithdrawDTO withdrawDTO) throws WithdrawException {
+        String amount;
+
+        Principal principal = request.getUserPrincipal();
+        Account account = userServices.findAccountByAccountNumber(principal.getName());
+
+        if (withdrawDTO.getAmount() == null) {
+            model.addAttribute("msg", Constant.CHOOSE_WITHDRAW_AMOUNT);
+            return "withdraw";
         }
-        return "SummaryScreen";
+        if ("other".equals(withdrawDTO.getAmount())) {
+            if (withdrawDTO.getInputValue().isEmpty()) {
+                withdrawDTO.setInputValue("0");
+            }
+            amount = withdrawDTO.getInputValue();
+            withdrawDTO.setAmount(withdrawDTO.getInputValue());
+        } else {
+            amount = withdrawDTO.getAmount();
+        }
+        try {
+            String validate = withdrawServices.validateWithdrawAmount(account.getBalance(), amount);
+            if (validate == null) {
+                if (withdrawServices.calculateWithdrawAmount(account, Integer.parseInt(amount))) {
+                    DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+                    withdrawDTO.setAccountNumber(account.getAccountNumber());
+                    withdrawDTO.setDate(LocalDateTime.now().format(dateTimeFormatter));
+                    withdrawDTO.setPin(account.getPin());
+                    withdrawDTO.setBalance(account.getBalance());
+                    model.addAttribute("withDraw", withdrawDTO);
+                    return "summary-screen";
+                }
+            }
+        } catch (WithdrawException e) {
+            model.addAttribute("msg", e.getMessage());
+            return "withdraw";
+        }
+        return "withdraw";
     }
 
-    @RequestMapping("/fund-transfer")
-    public String fundTransfer() {
-        return "FundTransferScreen";
+    @GetMapping("/account-screen/summary-screen")
+    public String summary() {
+        return "summary-screen";
     }
 
-    @RequestMapping(value = "/fund-transfer", method = RequestMethod.POST)
-    public String submitTransfer(
-            HttpServletRequest request,
-            @RequestParam("accountDestination") String accountDestination,
-            @RequestParam("amount") String amount,
-            @RequestParam("ref") String ref, Model model
-    ) {
-        String result =
-                null;
+    @GetMapping("/account-screen/fund-transfer")
+    public String fundTransfer(Model model) {
+        FundTransferDTO fundTransferDTO = new FundTransferDTO();
+        model.addAttribute("fundTransferDTO", fundTransferDTO);
+        return "fund-transfer";
+    }
+
+    @PostMapping("/account-screen/fund-transfer")
+    public String submitTransfer(Model model, HttpServletRequest request, @ModelAttribute("fundTransferDTO") FundTransferDTO fundTransferDTO) throws Exception {
+        String result = null;
+
+        Principal principal = request.getUserPrincipal();
+        Account account = userServices.findAccountByAccountNumber(principal.getName());
+
         try {
             result = fundTransferServices.submitFundTransaction(
-                    currentAccount.getAccountNumber(),
-                    currentAccount.getPin(),
-                    accountDestination,
-                    Integer.parseInt(amount),
-                    ref
+                    account.getAccountNumber(),
+                    account.getPin(),
+                    fundTransferDTO.getAccountDestination(),
+                    Integer.parseInt(fundTransferDTO.getAmount()),
+                    fundTransferDTO.getRef()
             );
-        } catch (Exception e) {
-            model.addAttribute("err", e.getMessage());
+        } catch (FundTransactionException e) {
+            model.addAttribute("msg", e.getMessage());
+            return "fund-transfer";
         }
         if (result.equals(Constant.SUCCESS)) {
             return "redirect:/account-screen";
         } else {
             request.setAttribute("msg", result);
-            return "FundTransferScreen";
+            return "fund-transfer";
         }
     }
 
-    @RequestMapping("/transaction-history")
-    public String latest10Transaction(Model m) {
-        List<History> transactionList = transactionHistory.findByAccNumber(currentAccount.getAccountNumber());
-        m.addAttribute("transactionList", transactionList);
-        return "TransactionHistoryScreen";
+    @GetMapping("/account-screen/transaction-history")
+    public String latest10Transaction(HttpServletRequest request, Model model) {
+
+        Principal principal = request.getUserPrincipal();
+        Account account = userServices.findAccountByAccountNumber(principal.getName());
+
+        List<History> transactionList = transactionHistory.findByAccNumber(account.getAccountNumber());
+        model.addAttribute("transactionList", transactionList);
+        return "transaction-history";
     }
 
 }

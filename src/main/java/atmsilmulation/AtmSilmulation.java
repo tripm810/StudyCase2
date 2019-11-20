@@ -38,7 +38,7 @@ public class AtmSilmulation extends SpringBootServletInitializer {
 		//Initialize the script runner
 		ScriptRunner sr = new ScriptRunner(con);
 		//Creating a reader object
-		Reader reader = new BufferedReader(new FileReader("D:\\Case Study\\StudyCase2\\src\\resources\\insert-data.sql"));
+		Reader reader = new BufferedReader(new FileReader("D:\\Case Study\\StudyCase2\\src\\main\\resources\\insert-data.sql"));
 		//Running the script
 		sr.runScript(reader);
 

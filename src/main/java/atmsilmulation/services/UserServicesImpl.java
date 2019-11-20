@@ -16,4 +16,9 @@ public class UserServicesImpl implements UserServices {
 		return accountRepository.findAccountByAccountNumberAndPin(accountNumber,pin);
 	}
 
+	@Override
+	public Account findAccountByAccountNumber(String accountNumber) {
+		return accountRepository.findAccountByAccountNumber(accountNumber);
+	}
+
 }
