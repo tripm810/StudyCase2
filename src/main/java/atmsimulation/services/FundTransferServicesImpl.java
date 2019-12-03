@@ -29,6 +29,7 @@ public class FundTransferServicesImpl implements FundTransferServices {
         Account currentAccount = accountRepository.findAccountByAccountNumberAndPin(accountNumber, pin);
         Account destinationAccount = accountRepository.findAccountByAccountNumber(destination);
 
+
 		if (currentAccount == null || destinationAccount == null) {
 			throw new FundTransactionException(Constant.ACCOUNT_INVALID);
 		}

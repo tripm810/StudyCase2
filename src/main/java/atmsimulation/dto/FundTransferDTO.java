@@ -6,6 +6,15 @@ public class FundTransferDTO {
     String amount;
     String ref;
 
+    public FundTransferDTO() {
+    }
+
+    public FundTransferDTO(String accountDestination, String amount, String ref) {
+        this.accountDestination = accountDestination;
+        this.amount = amount;
+        this.ref = ref;
+    }
+
     public String getAccountDestination() {
         return accountDestination;
     }

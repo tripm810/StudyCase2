@@ -6,7 +6,6 @@ import atmsimulation.dto.WithdrawDTO;
 import atmsimulation.exception.FundTransactionException;
 import atmsimulation.exception.WithdrawException;
 import atmsimulation.model.Account;
-import atmsimulation.model.History;
 import atmsimulation.services.FundTransferServices;
 import atmsimulation.services.TransactionHistory;
 import atmsimulation.services.UserServices;
@@ -21,10 +20,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import javax.servlet.http.HttpServletRequest;
-import java.security.Principal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 
 @Controller
 public class AtmController {
@@ -123,8 +120,8 @@ public class AtmController {
     public String submitTransfer(Model model, HttpServletRequest request, @ModelAttribute("fundTransferDTO") FundTransferDTO fundTransferDTO) throws Exception {
         String result = null;
 
-        Principal principal = request.getUserPrincipal();
-        Account account = userServices.findAccountByAccountNumber(principal.getName());
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Account account = userServices.findAccountByAccountNumber(authentication.getName());
 
         try {
             result = fundTransferServices.submitFundTransaction(
@@ -144,17 +141,6 @@ public class AtmController {
             request.setAttribute("msg", result);
             return "fund-transfer";
         }
-    }
-
-    @GetMapping("/account-screen/transaction-history")
-    public String latest10Transaction(HttpServletRequest request, Model model) {
-
-        Principal principal = request.getUserPrincipal();
-        Account account = userServices.findAccountByAccountNumber(principal.getName());
-
-        List<History> transactionList = transactionHistory.findByAccNumber(account.getAccountNumber());
-        model.addAttribute("transactionList", transactionList);
-        return "transaction-history";
     }
 
 }
