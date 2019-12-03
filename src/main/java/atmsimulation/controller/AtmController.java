@@ -6,6 +6,7 @@ import atmsimulation.dto.WithdrawDTO;
 import atmsimulation.exception.FundTransactionException;
 import atmsimulation.exception.WithdrawException;
 import atmsimulation.model.Account;
+import atmsimulation.model.History;
 import atmsimulation.services.FundTransferServices;
 import atmsimulation.services.TransactionHistory;
 import atmsimulation.services.UserServices;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 @Controller
 public class AtmController {
@@ -142,5 +144,18 @@ public class AtmController {
             return "fund-transfer";
         }
     }
+
+    @GetMapping("/account-screen/transaction-history")
+    public String latest10Transaction(HttpServletRequest request, Model model) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Account account = userServices.findAccountByAccountNumber(authentication.getName());
+
+        List<History> transactionList = transactionHistory.findByAccNumber(account.getAccountNumber());
+        model.addAttribute("transactionList", transactionList);
+        return "transaction-history";
+    }
+
+
 
 }
