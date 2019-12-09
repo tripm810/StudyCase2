@@ -202,3 +202,6 @@ logs/log-2019-12-03.log
 target/classes/META-INF/StudyCase2.kotlin_module
 target/test-classes/constant/Data.class
 target/test-classes/META-INF/StudyCase2.kotlin_module
+.idea/libraries/
+.idea/
+StudyCase2.iml
